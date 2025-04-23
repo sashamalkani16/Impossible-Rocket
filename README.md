@@ -1,336 +1,230 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<title>Tilt Rocket</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Rocket Tilt Game</title>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+  <div id="game">
+    <div id="rocket"></div>
+    <div id="scoreboard">
+      <span>Score: <span id="score">0</span></span>
+      <span>High Score: <span id="highScore">0</span></span>
+    </div>
+    <div id="gameOver">Game Over<br/><button onclick="restartGame()">Replay</button></div>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>
 <style>
-  body {
+body, html {
     margin: 0;
+    padding: 0;
     overflow: hidden;
-    background-color: #000;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    font-family: Arial, sans-serif;
+    background: black;
+  }
+  
+  #game {
+    width: 100vw;
     height: 100vh;
-    font-family: sans-serif;
-    /* Starfield background */
-    background-image: radial-gradient(ellipse at top, rgba(25, 33, 56, 0.90) 0%, rgba(13, 14, 20, 0.90) 100%),
-                      url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg"><filter id="noise"><feTurbulence baseFrequency="0.65" numOctaves="3" stitchTiles="stitch"/></filter><rect width="100%" height="100%" filter="url(#noise)" fill="rgba(255,255,255,0.1)"/></svg>');
-    background-size: cover;
-    animation: moveStars 50s linear infinite;
-  }
-
-  @keyframes moveStars {
-    from { background-position: 0 0; }
-    to { background-position: 100% 100%; }
-  }
-
-  #game-container {
     position: relative;
-    width: 90%;
-    max-width: 500px;
-    height: 80vh;
-    background-color: rgba(0, 0, 0, 0.3);
+    background: url('https://i.imgur.com/3xN9jFj.jpg') repeat;
+    background-size: cover;
     overflow: hidden;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
   }
 
-  #rocket {
+    #rocket {
+  width: 0;
+  height: 0;
+  border-left: 20px solid transparent;
+  border-right: 20px solid transparent;
+  border-bottom: 60px solid white;
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+  
+  .obstacle, .alien, .laser {
     position: absolute;
-    left: 50%;
-    bottom: 50px;
-    transform: translateX(-50%);
-    width: 60px;
-    height: auto;
-    transition: transform 0.1s ease-out;
-    filter: drop-shadow(0 2px 4px rgba(255, 255, 255, 0.3));
   }
-
+  
   .obstacle {
-    position: absolute;
+    width: 40px;
+    height: 40px;
+    background: gray;
+    border-radius: 50%;
+  }
+  
+  .alien {
     width: 50px;
-    height: auto;
+    height: 50px;
+    background: url('https://i.imgur.com/dZTPJYB.png') no-repeat center/contain;
   }
-
+  
   .laser {
-    position: absolute;
     width: 4px;
-    height: 12px;
-    background-color: #ff4d4d;
-    border-radius: 2px;
+    height: 20px;
+    background: red;
   }
-
-  #game-over {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    color: #eee;
-    font-size: 1.5em;
-    text-align: center;
-    display: none;
-    background-color: rgba(0, 0, 0, 0.7);
-    padding: 20px;
-    border-radius: 8px;
-  }
-
-  #game-over button {
-    font-size: 1em;
-    padding: 10px 20px;
-    cursor: pointer;
-    background-color: #5cb85c;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    margin-top: 10px;
-    transition: background-color 0.3s ease;
-  }
-
-  #game-over button:hover {
-    background-color: #4cae4c;
-  }
-
-  #high-score {
+  
+  #scoreboard {
     position: absolute;
     top: 10px;
     left: 10px;
-    color: #ddd;
-    font-size: 1em;
-    padding: 5px;
-    background-color: rgba(0, 0, 0, 0.5);
-    border-radius: 5px;
+    color: white;
+    font-size: 18px;
+    z-index: 10;
   }
-
-  #score {
+  
+  #gameOver {
     position: absolute;
-    top: 10px;
-    right: 10px;
-    color: #ddd;
-    font-size: 1em;
-    padding: 5px;
-    background-color: rgba(0, 0, 0, 0.5);
-    border-radius: 5px;
+    top: 40%;
+    width: 100%;
+   
+    color: white;
+    display: none;
+    z-index: 20;
   }
-</style>
-</head>
-<body>
-  <div id="game-container">
-    <div id="high-score">High Score: 0</div>
-    <div id="score">Score: 0</div>
-    <img id="rocket" src="https://www.citypng.com/public/uploads/preview/hd-cartoon-vector-space-rocket-transparent-png-701751694878031vwxwskt2oe.png" alt="Rocket">
-    <div id="game-over">
-      Game Over!<br>
-      Your Score: <span id="final-score">0</span><br>
-      <button onclick="startGame()">Replay</button>
-    </div>
-  </div>
-
+  
+  #gameOver button {
+    margin-top: 10px;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+  }
+  </style>
   <script>
-    const gameContainer = document.getElementById('game-container');
-    const rocket = document.getElementById('rocket');
-    const gameOverScreen = document.getElementById('game-over');
-    const finalScoreDisplay = document.getElementById('final-score');
-    const highScoreDisplay = document.getElementById('high-score');
-    const scoreDisplay = document.getElementById('score');
-
-    let gameInterval;
-    let score = 0;
-    let highScore = localStorage.getItem('highScore') || 0;
-    highScoreDisplay.textContent = `High Score: ${highScore}`;
-    let obstacleSpeed = 2;
-    let obstacleSpawnInterval = 1500; // milliseconds
-    let laserSpeed = 5;
-    const obstacles = [];
-    const aliens = [];
-    const lasers = [];
-    let isGameOver = false;
-
-    // --- Image Sources (Replace with your actual image paths) ---
-    const rocketSrc = 'https://www.citypng.com/public/uploads/preview/hd-cartoon-vector-space-rocket-transparent-png-701751694878031vwxwskt2oe.png';
-    const asteroidSrc = 'https://img.freepik.com/premium-vector/vector-illustration-asteroid-transparent-background_181203-31351.jpg';
-    const alienSrc = 'https://images.creativefabrica.com/products/previews/2024/05/12/lkaLLHh9Y/2gNGDg1K1UfU5Jj3KHzN1wve6pz-mobile.jpg';
-
-    function startGame() {
-      isGameOver = false;
-      score = 0;
-      obstacleSpeed = 2;
-      obstacleSpawnInterval = 1500;
-      scoreDisplay.textContent = `Score: ${score}`;
-      gameOverScreen.style.display = 'none';
-
-      // Clear existing obstacles, aliens, and lasers
-      obstacles.forEach(obstacle => obstacle.remove());
-      aliens.forEach(alien => alien.remove());
-      lasers.forEach(laser => laser.remove());
-      obstacles.length = 0;
-      aliens.length = 0;
-      lasers.length = 0;
-
-      // Reset rocket position
-      rocket.style.left = '50%';
-
-      gameInterval = setInterval(updateGame, 20);
-      obstacleInterval = setInterval(spawnObstacle, obstacleSpawnInterval);
-      alienInterval = setInterval(spawnAlien, obstacleSpawnInterval * 2); // Fewer aliens
-    }
-
-    function updateGame() {
-      if (isGameOver) return;
-
-      // Handle tilt input
-      if (window.DeviceMotionEvent) {
-        window.addEventListener('devicemotion', handleMotionEvent);
+  const rocket = document.getElementById('rocket');
+  const game = document.getElementById('game');
+  const scoreDisplay = document.getElementById('score');
+  const highScoreDisplay = document.getElementById('highScore');
+  const gameOverScreen = document.getElementById('gameOver');
+  
+  let score = 0;
+  let highScore = localStorage.getItem('highScore') || 0;
+  let rocketX = window.innerWidth / 2;
+  let speed = 2;
+  let gameInterval, spawnInterval, laserInterval;
+  let gameRunning = true;
+  
+  highScoreDisplay.innerText = highScore;
+  
+  function createObstacle() {
+    const obs = document.createElement('div');
+    obs.classList.add('obstacle');
+    obs.style.left = Math.random() * (window.innerWidth - 40) + 'px';
+    obs.style.top = '-40px';
+    game.appendChild(obs);
+  }
+  
+  function createAlien() {
+    const alien = document.createElement('div');
+    alien.classList.add('alien');
+    alien.style.left = Math.random() * (window.innerWidth - 50) + 'px';
+    alien.style.top = '-50px';
+    game.appendChild(alien);
+  
+    setTimeout(() => shootLaser(alien), 1500);
+  }
+  
+  function shootLaser(alien) {
+    if (!alien.parentElement) return;
+    const laser = document.createElement('div');
+    laser.classList.add('laser');
+    laser.style.left = alien.offsetLeft + 23 + 'px';
+    laser.style.top = alien.offsetTop + 40 + 'px';
+    game.appendChild(laser);
+  }
+  
+  function moveObjects() {
+    document.querySelectorAll('.obstacle, .alien, .laser').forEach(el => {
+      let top = parseFloat(el.style.top);
+      el.style.top = (top + speed) + 'px';
+  
+      if (el.classList.contains('laser')) {
+        if (checkCollision(el, rocket)) endGame();
+      } else if (checkCollision(el, rocket)) {
+        endGame();
       }
-
-      // Move obstacles
-      obstacles.forEach(obstacle => {
-        obstacle.style.top = obstacle.offsetTop + obstacleSpeed + 'px';
-        if (obstacle.offsetTop > gameContainer.offsetHeight) {
-          obstacle.remove();
-          obstacles.splice(obstacles.indexOf(obstacle), 1);
-          increaseScore();
-        }
-        checkCollision(obstacle);
-      });
-
-      // Move aliens and handle their shooting
-      aliens.forEach(alien => {
-        alien.style.top = alien.offsetTop + obstacleSpeed * 0.75 + 'px'; // Aliens move slightly slower
-        if (alien.offsetTop > gameContainer.offsetHeight) {
-          alien.remove();
-          aliens.splice(aliens.indexOf(alien), 1);
-        }
-        if (Math.random() < 0.01) { // 1% chance to shoot per frame
-          shootLaser(alien);
-        }
-        checkCollision(alien);
-      });
-
-      // Move lasers
-      lasers.forEach(laser => {
-        if (laser.direction === 'down') {
-          laser.style.top = laser.offsetTop + laserSpeed + 'px'; // Move downwards
-          if (laser.offsetTop > gameContainer.offsetHeight) {
-            laser.remove();
-            lasers.splice(lasers.indexOf(laser), 1);
-          }
-          checkLaserCollision(laser); // Check for collision with rocket
-        }
-      });
-
-      // Increase difficulty over time
-      if (score > 5 && obstacleSpawnInterval > 1000) {
-        obstacleSpawnInterval -= 50;
-        clearInterval(obstacleInterval);
-        obstacleInterval = setInterval(spawnObstacle, obstacleSpawnInterval);
+  
+      if (top > window.innerHeight) {
+        el.remove();
+        if (!el.classList.contains('laser')) score++;
+        updateScore();
       }
-      if (score > 10 && obstacleSpeed < 5) {
-        obstacleSpeed += 0.2;
-      }
-      if (score > 15 && laserSpeed < 8) {
-        laserSpeed += 0.5;
-      }
+    });
+  }
+  
+  function updateScore() {
+    scoreDisplay.innerText = score;
+    if (score > highScore) {
+      highScore = score;
+      localStorage.setItem('highScore', highScore);
+      highScoreDisplay.innerText = highScore;
     }
-
-    function handleMotionEvent(event) {
-      const tiltLR = event.gamma; // Left-right tilt in degrees (-90 to +90)
-
-      // Adjust rocket position based on tilt (you might need to fine-tune these values)
-      let newX = parseInt(rocket.style.left) + tiltLR * 1.5;
-
-      // Keep rocket within bounds
-      const minX = 0;
-      const maxX = gameContainer.offsetWidth;
-      newX = Math.max(minX, Math.min(maxX, newX));
-
-      rocket.style.left = newX + 'px';
-    }
-
-    function spawnObstacle() {
-      if (isGameOver) return;
-      const obstacleImg = document.createElement('img');
-      obstacleImg.src = asteroidSrc;
-      obstacleImg.classList.add('obstacle');
-      obstacleImg.style.left = Math.random() * (gameContainer.offsetWidth - 50) + 'px';
-      obstacleImg.style.top = -50 + 'px';
-      gameContainer.appendChild(obstacleImg);
-      obstacles.push(obstacleImg);
-    }
-
-    function spawnAlien() {
-      if (isGameOver) return;
-      const alienImg = document.createElement('img');
-      alienImg.src = alienSrc;
-      alienImg.classList.add('obstacle'); // Reuse obstacle styling for basic appearance
-      alienImg.style.left = Math.random() * (gameContainer.offsetWidth - 50) + 'px';
-      alienImg.style.top = -70 + 'px';
-      gameContainer.appendChild(alienImg);
-      aliens.push(alienImg);
-    }
-
-    function shootLaser(alien) {
-      if (isGameOver) return;
-      const laser = document.createElement('div');
-      laser.classList.add('laser');
-      laser.style.left = alien.offsetLeft + alien.offsetWidth / 2 - 2 + 'px';
-      laser.style.top = alien.offsetTop + alien.offsetHeight + 'px'; // Start at the bottom of the alien
-      gameContainer.appendChild(laser);
-      lasers.push(laser);
-      laser.direction = 'down'; // Mark the laser as moving down
-    }
-
-    function checkCollision(obstacle) {
-      const rocketRect = rocket.getBoundingClientRect();
-      const obstacleRect = obstacle.getBoundingClientRect();
-
-      if (
-        rocketRect.left < obstacleRect.right &&
-        rocketRect.right > obstacleRect.left &&
-        rocketRect.top < obstacleRect.bottom &&
-        rocketRect.bottom > obstacleRect.top
-      ) {
-        gameOver();
-      }
-    }
-
-    function checkLaserCollision(laser) {
-      if (laser.direction === 'down') { // Only check collision for downward lasers
-        const rocketRect = rocket.getBoundingClientRect();
-        const laserRect = laser.getBoundingClientRect();
-
-        if (
-          rocketRect.left < laserRect.right &&
-          rocketRect.right > laserRect.left &&
-          rocketRect.top < laserRect.bottom &&
-          rocketRect.bottom > laserRect.top
-        ) {
-          gameOver();
-        }
-      }
-    }
-
-    function increaseScore() {
-      score++;
-      scoreDisplay.textContent = `Score: ${score}`;
-    }
-
-    function gameOver() {
-      isGameOver = true;
-      clearInterval(gameInterval);
-      clearInterval(obstacleInterval);
-      clearInterval(alienInterval);
-      finalScoreDisplay.textContent = score;
-      gameOverScreen.style.display = 'block';
-
-      if (score > highScore) {
-        highScore = score;
-        localStorage.setItem('highScore', highScore);
-        highScoreDisplay.textContent = `High Score: ${highScore}`;
-      }
-    }
-
-    // Start the game when the page loads
-    startGame();
+    speed = 2 + score / 20; // Game gets faster
+  }
+  
+  function checkCollision(a, b) {
+    const rect1 = a.getBoundingClientRect();
+    const rect2 = b.getBoundingClientRect();
+    return !(
+      rect1.bottom < rect2.top || 
+      rect1.top > rect2.bottom || 
+      rect1.right < rect2.left || 
+      rect1.left > rect2.right
+    );
+  }
+  
+  function endGame() {
+    clearInterval(gameInterval);
+    clearInterval(spawnInterval);
+    clearInterval(laserInterval);
+    gameRunning = false;
+    gameOverScreen.style.display = 'block';
+  }
+  
+  function restartGame() {
+    game.innerHTML = `<div id="rocket"></div><div id="scoreboard">
+        <span>Score: <span id="score">0</span></span>
+        <span>High Score: <span id="highScore">${highScore}</span></span>
+      </div><div id="gameOver">Game Over<br/><button onclick="restartGame()">Replay</button></div>`;
+    rocketX = window.innerWidth / 2;
+    score = 0;
+    speed = 2;
+    scoreDisplay.innerText = score;
+    gameOverScreen.style.display = 'none';
+    gameRunning = true;
+  
+    init();
+  }
+  
+  function init() {
+    rocket.style.left = rocketX + 'px';
+  
+    // Device tilt controls
+    window.addEventListener('deviceorientation', e => {
+      if (!gameRunning) return;
+      let tilt = e.gamma; // side to side tilt
+      rocketX += tilt * 1.5;
+      rocketX = Math.max(0, Math.min(window.innerWidth - 40, rocketX));
+      rocket.style.left = rocketX + 'px';
+    });
+  
+    gameInterval = setInterval(moveObjects, 20);
+    spawnInterval = setInterval(() => {
+      createObstacle();
+      if (Math.random() < 0.5) createAlien();
+    }, 1000);
+  }
+  
+  init();
   </script>
+  </html>
 </body>
-</html>
+      
